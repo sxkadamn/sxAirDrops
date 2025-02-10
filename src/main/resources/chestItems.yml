@@ -1,0 +1,31 @@
+rares:
+  elite:
+    chance: 50
+    display: "&eЭЛИТЫЕ ПРЕДМЕТЫ"
+    items:
+      item0:
+        amount: 1
+        stack:
+          ==: org.bukkit.inventory.ItemStack
+          v: 2586
+          type: GOLDEN_SWORD
+  epic:
+    chance: 30
+    display: "&5ЭПИЧЕСКИЕ ПРЕДМЕТЫ"
+    items:
+      item0:
+        amount: 1
+        stack:
+          ==: org.bukkit.inventory.ItemStack
+          v: 2586
+          type: DIAMOND_SWORD
+  legendary:
+    chance: 10
+    display: "&сЛЕГЕНДАРНЫЕ ПРЕДМЕТЫ"
+    items:
+      item0:
+        amount: 1
+        stack:
+          ==: org.bukkit.inventory.ItemStack
+          v: 2586
+          type: NETHERITE_SWORD

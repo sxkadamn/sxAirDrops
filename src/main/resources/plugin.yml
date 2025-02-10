@@ -1,0 +1,11 @@
+name: sxAirDrops
+version: '${project.version}'
+main: net.mcdrop.sxAirDrops
+api-version: '1.16'
+depend:
+  - lieLibrary
+softdepend:
+  - WorldGuard
+  - WorldEdit
+  - ProtocolLib
+website: @amespoal
