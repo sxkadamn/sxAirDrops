@@ -7,5 +7,5 @@ depend:
 softdepend:
   - WorldGuard
   - WorldEdit
-  - ProtocolLib
-website: @amespoal
+  - DecentHolograms
+website: tg amespoal

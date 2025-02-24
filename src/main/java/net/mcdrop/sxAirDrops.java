@@ -5,10 +5,12 @@ import net.mcdrop.bukkit.chest.listeners.joiner.JoinerListener;
 import net.mcdrop.bukkit.chest.listeners.opened.OpenedListener;
 import net.mcdrop.bukkit.chest.listeners.touch.TouchListener;
 import net.mcdrop.bukkit.commands.AdminCommands;
-import net.mcdrop.bukkit.mythical.listener.CheckingMyth;
-import net.mcdrop.bukkit.mythical.manager.ChestManager;
+import net.mcdrop.bukkit.mythical.listener.ControlDrop;
+import net.mcdrop.bukkit.mythical.listener.KeyDrop;
 import net.mcdrop.common.Utility;
+import net.mcdrop.common.base.chest.ChestListFiller;
 import net.mcdrop.common.base.drop.DropItemsFiller;
+import net.mcdrop.common.base.key.KeyChestFiller;
 import net.mcdrop.common.schematic.file.DirectoryManager;
 import net.mcdrop.common.schematic.file.manage.SchematicsDirectoryManager;
 import net.lielibrary.bukkit.command.BaseCommand;
@@ -25,7 +27,6 @@ public final class sxAirDrops extends JavaPlugin {
 
     private static DirectoryManager schematicsManager;
 
-    private ChestManager chestManager;
 
 
     @Override
@@ -33,7 +34,6 @@ public final class sxAirDrops extends JavaPlugin {
         instance = this;
         saveDefaultConfig();
 
-        chestManager = new ChestManager(getConfig());
 
         schematicsManager = new SchematicsDirectoryManager(getDataFolder(), "schematics");
         schematicsManager.createDirectoryIfNotExists();
@@ -41,9 +41,10 @@ public final class sxAirDrops extends JavaPlugin {
         Utility.checkPlugin("lieLibrary");
         Utility.checkPlugin("WorldGuard");
         Utility.checkPlugin("WorldEdit");
-        Utility.checkPlugin("ProtocolLib");
+        Utility.checkPlugin("DecentHolograms");
 
         DropItemsFiller.load();
+        KeyChestFiller.load();
 
         BaseCommand.register(this, new AdminCommands("airdrop"));
 
@@ -51,7 +52,8 @@ public final class sxAirDrops extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new OpenedListener(), this);
         getServer().getPluginManager().registerEvents(new JoinerListener(), this);
         getServer().getPluginManager().registerEvents(new MenuListener(), this);
-        getServer().getPluginManager().registerEvents(new CheckingMyth(),this);
+        getServer().getPluginManager().registerEvents(new ControlDrop(),this);
+        getServer().getPluginManager().registerEvents(new KeyDrop(), this);
 
         new Tasks();
     }
@@ -60,15 +62,13 @@ public final class sxAirDrops extends JavaPlugin {
     public void onDisable() {
         saveConfig();
         DropItemsFiller.save();
+        ChestListFiller.save();
+        KeyChestFiller.save();
     }
 
     @NotNull
     public static File getSchematicsDirectory() {
         return schematicsManager.getDirectory();
-    }
-
-    public ChestManager getChestManager() {
-        return chestManager;
     }
 
     public static sxAirDrops getInstance() {

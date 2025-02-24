@@ -1,5 +1,8 @@
 package net.mcdrop.bukkit.chest;
 
+import eu.decentsoftware.holograms.api.DHAPI;
+import eu.decentsoftware.holograms.api.holograms.Hologram;
+import net.mcdrop.bukkit.mythical.listener.KeyDrop;
 import net.mcdrop.sxAirDrops;
 import net.mcdrop.bukkit.Tasks;
 import net.mcdrop.bukkit.chest.bossbar.BossBarChest;
@@ -8,8 +11,6 @@ import net.mcdrop.bukkit.chest.bossbar.play.LockedBossBar;
 import net.mcdrop.bukkit.chest.bossbar.play.OpenedBossBar;
 import net.mcdrop.bukkit.chest.region.Region;
 import net.mcdrop.common.Utility;
-import net.mcdrop.common.protocolLib.hologram.Hologram;
-import net.mcdrop.common.protocolLib.hologram.HologramLine;
 import net.mcdrop.common.schematic.IEditSessionManager;
 import net.mcdrop.common.schematic.ISchematicManager;
 import net.mcdrop.common.schematic.manage.EditSessionManager;
@@ -24,6 +25,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -88,15 +90,19 @@ public class Creating {
         region = new Region();
         region.regionCreate(block);
 
-
-        hologram = new Hologram(
-                sxAirDrops.getInstance().getConfig().getString("event.holograms.locked")
-                        .replace("{time}", String.valueOf(chestTimeToOpen)),
-                block.getLocation().add(0.5, 0.5, 0.5)
+        List<String> listText = new ArrayList<>();
+        sxAirDrops.getInstance().getConfig().getStringList("event.holograms.locked").forEach(line ->
+                listText.add(Plugin.getWithColor().hexToMinecraftColor(line)
+                        .replace("{time}", String.valueOf(chestTimeToOpen))
+                )
         );
+
+        hologram = DHAPI.createHologram("locked",
+                block.getLocation().clone().add(0.5, 2.7, 0.5),
+                listText);
         hologram.showAll();
 
-        taskOpen();
+        taskOpen(block);
 
         Utility.playParticleEffectBasedOnConfig(block, "locked");
 
@@ -133,7 +139,7 @@ public class Creating {
 
     }
 
-    private void taskOpen() {
+    private void taskOpen(Block block) {
         AtomicInteger timeLeft = new AtomicInteger(chestTimeToOpen);
         bossBarChest = new LockedBossBar();
         new BossBarManager().addBossBar(chestLocation.getWorld().getUID(), bossBarChest);
@@ -162,22 +168,30 @@ public class Creating {
             if (bossBarChest != null) {
                 String updatedTitle = Plugin.getWithColor().hexToMinecraftColor(
                         bossBarChest.getName()
-                                .replace("{time}", String.valueOf(remainingTime))
-                                .replace("{x}", String.valueOf(chestLocation.getX()))
-                                .replace("{y}", String.valueOf(chestLocation.getY()))
-                                .replace("{z}", String.valueOf(chestLocation.getZ()))
+                                .replace("%time%", String.valueOf(remainingTime))
+                                .replace("%x%", String.valueOf(chestLocation.getX()))
+                                .replace("%y%", String.valueOf(chestLocation.getY()))
+                                .replace("%z%", String.valueOf(chestLocation.getZ()))
                 );
                 bossBarChest.getBossBar().setTitle(updatedTitle);
                 bossBarChest.getBossBar().setProgress((double) remainingTime / chestTimeToOpen);
             }
 
+            List<String> listText = new ArrayList<>();
+            sxAirDrops.getInstance().getConfig().getStringList("event.holograms.locked").forEach(line ->
+                    listText.add(Plugin.getWithColor().hexToMinecraftColor(line)
+                            .replace("{time}", String.valueOf(remainingTime))
+                    )
+            );
+
             if (hologram != null) {
-                String hologramText = sxAirDrops.getInstance().getConfig().getString("event.holograms.locked")
-                        .replace("{time}", String.valueOf(remainingTime));
-                HologramLine firstLine = hologram.getLines().get(0);
-                firstLine.setLineName(hologramText);
-                firstLine.showAll();
+                hologram.delete();
             }
+
+            hologram = DHAPI.createHologram("locked",
+                    block.getLocation().clone().add(0.5, 2.7, 0.5),
+                    listText);
+            hologram.showAll();
 
         }, 20L, 20L).getTaskId();
     }
@@ -190,22 +204,29 @@ public class Creating {
         Bukkit.getScheduler().runTaskTimer(sxAirDrops.getInstance(), () -> {
             int currentTimeLeft = timeLeftAtomic.decrementAndGet();
 
-            String text = sxAirDrops.getInstance().getConfig().getString("event.holograms.opened")
-                    .replace("{time}", String.valueOf(currentTimeLeft));
+            List<String> listText = new ArrayList<>();
+            sxAirDrops.getInstance().getConfig().getStringList("event.holograms.opened").forEach(line ->
+                    listText.add(Plugin.getWithColor().hexToMinecraftColor(line)
+                            .replace("{time}", String.valueOf(currentTimeLeft))
+                    )
+            );
 
             if (hologram != null) {
-                hologram.setLine(text);
-                HologramLine hologramLine = hologram.getLines().get(0);
-                hologramLine.setLineName(text);
+                hologram.delete();
+
+                hologram = DHAPI.createHologram("delete",
+                        block.getLocation().clone().add(0.5, 2.7, 0.5),
+                        listText);
+                hologram.showAll();
             }
 
             if (bossBarChest != null) {
                 String newTitle = Plugin.getWithColor().hexToMinecraftColor(
                         bossBarChest.getName()
-                                .replace("{time}", String.valueOf(currentTimeLeft))
-                                .replace("{x}", String.valueOf(chestLocation.getX()))
-                                .replace("{y}", String.valueOf(chestLocation.getY()))
-                                .replace("{z}", String.valueOf(chestLocation.getZ()))
+                                .replace("%time%", String.valueOf(currentTimeLeft))
+                                .replace("%x%", String.valueOf(chestLocation.getX()))
+                                .replace("%y%", String.valueOf(chestLocation.getY()))
+                                .replace("%z%", String.valueOf(chestLocation.getZ()))
 
                 );
 
@@ -222,12 +243,12 @@ public class Creating {
                 iEditSessionManager.clearAllSessions();
 
                 block.removeMetadata(chestId, sxAirDrops.getInstance());
-                if (hologram != null) {
-                    hologram.remove();
-                }
-                if (bossBarChest != null) {
-                    bossBarChest.stop();
-                }
+
+                if (hologram != null) hologram.delete();
+
+                if (bossBarChest != null) bossBarChest.stop();
+
+                if(!KeyDrop.getDroppedKeys().isEmpty()) KeyDrop.getDroppedKeys().clear();
 
                 Bukkit.getScheduler().cancelTasks(sxAirDrops.getInstance());
 
@@ -260,15 +281,20 @@ public class Creating {
 
         chest.open();
 
+        List<String> listText = new ArrayList<>();
+        sxAirDrops.getInstance().getConfig().getStringList("event.holograms.opened").forEach(line ->
+                listText.add(Plugin.getWithColor().hexToMinecraftColor(line)
+                        .replace("{time}", String.valueOf(chestTimeToOpen))
+                )
+        );
+
         if (hologram != null) {
-            hologram.remove();
+            hologram.delete();
         }
 
-        hologram = new Hologram(
-                sxAirDrops.getInstance().getConfig().getString("event.holograms.opened")
-                        .replace("{time}", String.valueOf(chestTimeToOpen)),
-                block.getLocation().add(0.5, 0.5, 0.5)
-        );
+        hologram = DHAPI.createHologram("opened",
+                block.getLocation().clone().add(0.5, 2.7, 0.5),
+                listText);
         hologram.showAll();
 
         if (bossBarChest != null)

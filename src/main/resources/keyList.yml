@@ -1,0 +1,21 @@
+keys:
+  key_1:
+    id: "mythical_key_1"
+    name: "&aКлюч 1"
+    material: "TRIPWIRE_HOOK"
+    dropChance: 0.20 #20% шанс выпадения
+  key_2:
+    id: "mythical_key_2"
+    name: "&cКлюч 2"
+    material: "TRIPWIRE_HOOK"
+    dropChance: 0.01 # 1% шанс выпадения
+  key_3:
+    id: "mythical_key_3"
+    name: "&eКлюч 3"
+    material: "TRIPWIRE_HOOK"
+    dropChance: 0.15 # 15% шанс выпадения
+  key_4:
+    id: "mythical_key_4"
+    name: "&dКлюч 4"
+    material: "TRIPWIRE_HOOK"
+    dropChance: 0.05 # 5% шанс выпадения

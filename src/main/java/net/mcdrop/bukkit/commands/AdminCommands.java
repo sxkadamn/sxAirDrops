@@ -1,6 +1,9 @@
 package net.mcdrop.bukkit.commands;
 
-import net.mcdrop.bukkit.mythical.KeysMythical;
+import net.mcdrop.common.base.chest.ChestListFiller;
+import net.mcdrop.common.base.chest.fake.ChestFake;
+import net.mcdrop.common.base.key.KeyChestFiller;
+import net.mcdrop.common.base.key.item.KeyItem;
 import net.mcdrop.sxAirDrops;
 import net.mcdrop.menu.LootMenu;
 import net.lielibrary.bukkit.Plugin;
@@ -35,7 +38,7 @@ public class AdminCommands extends BaseCommand {
                     sxAirDrops.getInstance().getConfig().getString("messages.commands.loot_menu_opened")
             ));
         } else if (args[0].equalsIgnoreCase("admin")) {
-            for(KeysMythical keysMythical : sxAirDrops.getInstance().getChestManager().getMythicals())
+            for(KeyItem keysMythical : KeyChestFiller.getAllKeys().values())
                 player.getInventory().addItem(keysMythical.getItem());
         }
         else {

@@ -1,5 +1,6 @@
 package net.mcdrop.bukkit.chest.listeners.joiner;
 
+import eu.decentsoftware.holograms.api.holograms.Hologram;
 import net.mcdrop.bukkit.chest.bossbar.BossBarChest;
 import net.mcdrop.bukkit.chest.bossbar.manager.BossBarManager;
 import net.mcdrop.sxAirDrops;
@@ -15,7 +16,7 @@ public class JoinerListener implements Listener {
         if (bossBar != null)
             bossBar.showToPlayer(event.getPlayer());
 
-        sxAirDrops.getInstance().getChestManager().getChestActives().forEach(chestMythical -> chestMythical.getHologram().show(event.getPlayer()));
+
     }
 
 }

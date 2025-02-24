@@ -38,7 +38,7 @@ public class ChestLocationStrategy implements LocationStrategy {
 //                    }
 
                     if (isSuitableLocation(baseLocation, schematicWidth,schematicLength)) {
-                        location = baseLocation.add(0, 1, 0); // Смещение, чтобы разместить над землей
+                        location = baseLocation.add(0, 1, 0);
                         break;
                     }
                 }
