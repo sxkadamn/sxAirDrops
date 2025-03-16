@@ -69,7 +69,14 @@ event:
     opened: # Когда сундук открыт
       - "&a✔ &6Сундук открыт!"
       - "&6Удалится через: &c{time} &6секунд"
+  rewards:
+    kill_boss: #Награды первому открывшему игроку сундук
+      - '[MESSAGE] &aВы первый открыли выбили уникальный ключ и получили награду!'
+      - '[CONSOLE] eco give {player_name} 500'
+      - '[ACTION_BAR] &6+500 монет!'
   sounds: # Звуки событий
+    already_opened:
+      - BLOCK_CHEST_LOCKED:3.5F:3.5F
     locked: # Когда сундук закрыт
       - BLOCK_CHEST_LOCKED:3.5F:3.5F
     opened: # Когда сундук открыт
@@ -114,6 +121,15 @@ event:
       z-direct-max: 2000
       z-direct-min: -2000
 messages: # Сообщения плагина
+  commands:
+    command_error: "&cЭту команду может выполнять только игрок!"
+    loot_menu_opened: "&aВы открыли меню лута!"
+    admin_give_keys: "&bВы получили все ключи!"
+    user-help:
+      - "&7--------------------------"
+      - "&e/airdrops loot &7- Открыть меню лута. (для админов)."
+      - "&e/airdrops admin &7- Получить все ключи (для админов)."
+      - "&7--------------------------"
   must_be_chest: "Блок не является сундуком"
   rarity_not_found: "Выбранная редкость не существует."
   animation_not_found: "Анимация не найдена: {animation}"
