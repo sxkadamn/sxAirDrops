@@ -7,59 +7,79 @@ import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ChestLocationStrategy implements LocationStrategy {
 
-    private final List<String> UNSUITABLE_BLOCKS =
-            sxAirDrops.getInstance().getConfig().getStringList("event.tools.location.generate.black_List_Blocks");
-    private final List<String> UNSUITABLE_BIOMES =
-            sxAirDrops.getInstance().getConfig().getStringList("event.tools.location.generate.black_List_Biomes");
-
+    private final List<String> UNSUITABLE_BLOCKS = sxAirDrops.getInstance().getConfig()
+            .getStringList("event.tools.location.generate.black_List_Blocks");
+    private final List<String> UNSUITABLE_BIOMES = sxAirDrops.getInstance().getConfig()
+            .getStringList("event.tools.location.generate.black_List_Biomes");
 
     public void findLocationAsync(World world, int minX, int maxX, int minZ, int maxZ,
                                   int maxAttempts, int schematicWidth, int schematicLength,
                                   LocationCallBack callback) {
-        Bukkit.getScheduler().runTaskAsynchronously(sxAirDrops.getInstance(), () -> {
-            try {
-                Location location = null;
-                for (int attempts = 0; attempts < maxAttempts; attempts++) {
-                    int x = getRandom(minX, maxX);
-                    int z = getRandom(minZ, maxZ);
-                    int y = world.getHighestBlockYAt(x, z);
 
-                    if (y == -1) continue;
+        CompletableFuture.runAsync(() -> {
+            Location location = null;
 
-                    Location baseLocation = new Location(world, x, y, z);
+            for (int attempts = 0; attempts < maxAttempts; attempts++) {
+                int x = getRandom(minX, maxX);
+                int z = getRandom(minZ, maxZ);
+                int y = world.getHighestBlockYAt(x, z);
+                if (y <= 30) continue;
 
-//                    if (!checkForEvenness(baseLocation)) {
-//                        sxAirDrops.getInstance().getLogger().info("Локация не прошла проверку на ровность: X=" + x + ", Y=" + y + ", Z=" + z);
-//                        continue;
-//                    }
-
-                    if (isSuitableLocation(baseLocation, schematicWidth,schematicLength)) {
-                        location = baseLocation.add(0, 1, 0);
-                        break;
-                    }
+                Location baseLocation = new Location(world, x, y, z);
+                if (isSuitableLocation(baseLocation, schematicWidth, schematicLength)) {
+                    location = baseLocation.add(0, 1, 0);
+                    break;
                 }
-
-                final Location finalLocation = location;
-                Bukkit.getScheduler().runTask(sxAirDrops.getInstance(), () -> {
-                    if (finalLocation != null) {
-                        callback.onLocationFound(finalLocation);
-                    } else {
-                        callback.onFailure(sxAirDrops.getInstance().getConfig().getString("messages.location_not_found")
-                                .replace("{attempts}", String.valueOf(maxAttempts)));
-                    }
-                });
-
-            } catch (Exception e) {
-                Bukkit.getScheduler().runTask(sxAirDrops.getInstance(), () -> {
-                    callback.onFailure(sxAirDrops.getInstance().getConfig().getString("messages.location_search_error")
-                            .replace("{error}", e.getMessage()));
-                });
             }
+
+            Location finalLocation = location;
+            Bukkit.getScheduler().runTask(sxAirDrops.getInstance(), () -> {
+                if (finalLocation != null) {
+                    callback.onLocationFound(finalLocation);
+                } else {
+                    callback.onFailure(sxAirDrops.getInstance().getConfig()
+                            .getString("messages.location_not_found")
+                            .replace("{attempts}", String.valueOf(maxAttempts)));
+                }
+            });
+
+        }).exceptionally(e -> {
+            Bukkit.getScheduler().runTask(sxAirDrops.getInstance(), () -> {
+                callback.onFailure(sxAirDrops.getInstance().getConfig()
+                        .getString("messages.location_search_error")
+                        .replace("{error}", e.getMessage()));
+            });
+            return null;
         });
+    }
+
+    private boolean isSuitableLocation(Location baseLocation, int schematicWidth, int schematicLength) {
+        World world = baseLocation.getWorld();
+        if (world == null) return false;
+
+        Biome biome = baseLocation.getBlock().getBiome();
+        if (UNSUITABLE_BIOMES.contains(biome.name())) {
+            return false;
+        }
+
+        for (int xOffset = 0; xOffset < schematicWidth; xOffset++) {
+            for (int zOffset = 0; zOffset < schematicLength; zOffset++) {
+                Block block = baseLocation.clone().add(xOffset, -1, zOffset).getBlock();
+                if (UNSUITABLE_BLOCKS.contains(block.getType().name())) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private int getRandom(int min, int max) {
+        return ThreadLocalRandom.current().nextInt(min, max + 1);
     }
 
 //    private int getHighestBlock(Chunk chunk, int worldX, int worldZ, int maxY) {
@@ -76,35 +96,6 @@ public class ChestLocationStrategy implements LocationStrategy {
 //        }
 //        return -1;
 //    }
-
-    private boolean isSuitableLocation(Location baseLocation, int schematicWidth, int schematicLength) {
-        World world = baseLocation.getWorld();
-        if (world == null) return false;
-
-        Biome biome = baseLocation.getBlock().getBiome();
-        if (UNSUITABLE_BIOMES.contains(biome.name())) {
-            sxAirDrops.getInstance().getLogger().info(sxAirDrops.getInstance().getConfig()
-                    .getString("messages.unsuitable_biome")
-                    .replace("{biome}", biome.name()));
-            return false;
-        }
-
-        for (int xOffset = 0; xOffset < schematicWidth; xOffset++) {
-            for (int zOffset = 0; zOffset < schematicLength; zOffset++) {
-                Location checkLocation = baseLocation.clone().add(xOffset, -1, zOffset);
-                Block block = checkLocation.getBlock();
-
-                if (UNSUITABLE_BLOCKS.contains(block.getType().name())) {
-                    sxAirDrops.getInstance().getLogger().info(sxAirDrops.getInstance().getConfig()
-                            .getString("messages.unsuitable_block")
-                            .replace("{block}", block.getType().name()));
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
 
 //    public boolean checkForEvenness(@NotNull Location location) {
 //        int startX = sxAirDrops.getInstance().getConfig().getInt("event.tools.location.generate.evenness.start-x");
@@ -140,8 +131,4 @@ public class ChestLocationStrategy implements LocationStrategy {
 //        }
 //        return true;
 //    }
-
-    private int getRandom(int min, int max) {
-        return ThreadLocalRandom.current().nextInt(min, max + 1);
-    }
 }

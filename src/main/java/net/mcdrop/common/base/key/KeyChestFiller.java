@@ -28,7 +28,7 @@ public class KeyChestFiller {
                     String id = keySection.getString("id");
                     String name = keySection.getString("name");
                     Material material = Material.valueOf(keySection.getString("material", "TRIPWIRE_HOOK"));
-                    double dropChance = keySection.getDouble("dropChance", 0.1);
+                    double dropChance = keySection.getDouble("dropChance");
 
                     KeyItem key = new DropKey(id, name, material, dropChance);
                     keys.put(keyName, key);
@@ -47,6 +47,7 @@ public class KeyChestFiller {
             keySection.set("id", key.getId());
             keySection.set("name", key.getName());
             keySection.set("material", key.getMaterial().name());
+            keySection.set("dropChance", key.getDropChance());
         });
 
         keyConfig.save();

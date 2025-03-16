@@ -1,6 +1,5 @@
 package net.mcdrop.bukkit.mythical.listener;
 
-import net.mcdrop.bukkit.mythical.QuestChest;
 import net.mcdrop.common.base.chest.ChestListFiller;
 import net.mcdrop.common.base.chest.fake.ChestFake;
 import net.mcdrop.sxAirDrops;
@@ -21,17 +20,17 @@ public class ControlDrop implements Listener {
         if (!(holder instanceof Chest chest)) return;
 
         for (ChestFake chestMythical : ChestListFiller.getAllChests().values())
-                if (chestMythical.getLocation().equals(chest.getLocation()))
-                    Bukkit.getScheduler().runTaskLater(sxAirDrops.getInstance(), chestMythical::check, 5L);
+            if (chestMythical.getLocation().equals(chest.getLocation()))
+                Bukkit.getScheduler().runTaskLater(sxAirDrops.getInstance(), chestMythical::check, 5L);
     }
 
     @EventHandler
     public void onBreakBlock(BlockBreakEvent event) {
         Block block = event.getBlock();
-        if (!(block instanceof Chest chest)) return;
+        if (!(block instanceof Chest)) return;
 
         for (ChestFake chestMythical : ChestListFiller.getAllChests().values())
-            if (chestMythical.getLocation().equals(chest.getLocation()))
+            if (chestMythical.getLocation().equals(block.getLocation()))
                 event.setCancelled(true);
     }
 }

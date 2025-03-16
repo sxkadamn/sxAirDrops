@@ -1,25 +1,25 @@
 chests:
   chest1:
     world: "world"
-    x: 100
-    y: 64
-    z: 200
+    x: 214
+    y: 65
+    z: 274
     key: "mythical_key_1"
   chest2:
     world: "world"
-    x: 150
-    y: 64
-    z: 200
+    x: 216
+    y: 65
+    z: 276
     key: "mythical_key_2"
   chest3:
     world: "world"
-    x: 200
-    y: 64
-    z: 200
+    x: 212
+    y: 65
+    z: 276
     key: "mythical_key_3"
   chest4:
     world: "world"
-    x: 250
-    y: 64
-    z: 200
+    x: 214
+    y: 65
+    z: 278
     key: "mythical_key_4"

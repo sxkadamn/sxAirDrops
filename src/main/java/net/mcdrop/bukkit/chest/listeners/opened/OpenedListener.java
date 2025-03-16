@@ -1,7 +1,11 @@
 package net.mcdrop.bukkit.chest.listeners.opened;
 
 
+import net.lielibrary.bukkit.Plugin;
+import net.lielibrary.bukkit.requirements.RequirementAPI;
 import net.mcdrop.common.Utility;
+import net.mcdrop.sxAirDrops;
+import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.Player;
@@ -29,6 +33,7 @@ public class OpenedListener implements Listener {
 //                        .forEach(s ->
 //                                player.sendMessage(
 //                                        Plugin.getWithColor().hexToMinecraftColor(s.replace("{player}", player.getDisplayName()))));
+
 
             Utility.playConfiguredSounds(player, "events.sounds.opened");
         }

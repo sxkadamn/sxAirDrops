@@ -1,12 +1,12 @@
 package net.mcdrop.menu;
 
+import net.lielibrary.AnimatedMenu;
 import net.mcdrop.sxAirDrops;
 import net.mcdrop.common.base.drop.DropItemsFiller;
 import net.mcdrop.common.base.drop.rarity.DropItemRarity;
 import net.mcdrop.common.base.impl.ChestItem;
 import net.lielibrary.bukkit.Plugin;
 
-import net.lielibrary.gui.Menu;
 import net.lielibrary.gui.buttons.Button;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -21,13 +21,11 @@ import java.util.Map;
 public class LootMenu {
 
     public void lootCreateMenu(Player player) {
-        Menu menu = Plugin.getMenuManager().createGUI(
-                "loot",
-                player.getName(),
-                Plugin.getWithColor().hexToMinecraftColor(sxAirDrops.getInstance().getConfig().getString("menus.loot")),
-                3,
-                false
-        );
+        AnimatedMenu animatedMenu =
+                Plugin.getMenuManager().createMenuFromConfig(
+                        Plugin.getWithColor().hexToMinecraftColor(
+                                sxAirDrops.getInstance().getConfig().getString("menus.loot")),
+                        3, player);
 
         Map<String, DropItemRarity> rarities = DropItemsFiller.getAllRarities();
         int slot = 0;
@@ -36,11 +34,11 @@ public class LootMenu {
             button.setDisplay(Plugin.getWithColor().hexToMinecraftColor("&7" + rarityKey));
             button.withListener(event -> openEditRarityMenus(player, rarityKey));
 
-            menu.setSlot(slot, button);
+            animatedMenu.setSlot(slot, button);
             slot++;
         }
 
-        player.openInventory(menu.getInventory());
+        animatedMenu.open(player);
     }
 
     public void openEditRarityMenus(Player player, String rarityKey) {
@@ -51,27 +49,25 @@ public class LootMenu {
             return;
         }
 
-        Menu menu = Plugin.getMenuManager().createGUI(
-                "edit",
-                player.getName(),
-                Plugin.getWithColor().hexToMinecraftColor(sxAirDrops.getInstance().getConfig().getString("menus.loot_edit")
-                        .replace("{rarity}", rarity.getName())),
-                3,
-                false
-        );
+        AnimatedMenu animatedMenu =
+                Plugin.getMenuManager().createMenuFromConfig(
+                        Plugin.getWithColor().hexToMinecraftColor(
+                                sxAirDrops.getInstance().getConfig().getString("menus.loot_edit")
+                                .replace("{rarity}", rarity.getName())),
+                        3, player);
 
         for (ChestItem chestItem : rarity.getItems()) {
             Button button = new Button(chestItem.getItemStack());
 
-            if (menu.getInventory().firstEmpty() != -1)
-                menu.setSlot(menu.getInventory().firstEmpty(), button);
+            if (animatedMenu.getInventory().firstEmpty() != -1)
+                animatedMenu.setSlot(animatedMenu.getInventory().firstEmpty(), button);
         }
 
-        menu.setCloseListener(player1 -> {
+        animatedMenu.setCloseListener(player1 -> {
 
             List<ChestItem> updatedChestItems = new ArrayList<>();
 
-            ItemStack[] itemStacks = menu.getInventory().getStorageContents();
+            ItemStack[] itemStacks = animatedMenu.getInventory().getStorageContents();
             for (ItemStack itemStack : itemStacks) {
                 if (itemStack != null && !itemStack.getType().equals(Material.AIR)) {
                     ChestItem updatedItem = new ChestItem(itemStack, itemStack.getAmount());
@@ -85,7 +81,7 @@ public class LootMenu {
             DropItemsFiller.save();
         });
 
-        player.openInventory(menu.getInventory());
+        animatedMenu.open(player);
     }
 
 //    public void openRarityEditMenu(Player player, String rarityKey) {

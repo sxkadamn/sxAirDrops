@@ -1,5 +1,7 @@
 package net.mcdrop.bukkit;
 
+import net.lielibrary.bukkit.parser.TimeProvider;
+import net.lielibrary.bukkit.parser.service.MoscowTimeService;
 import net.mcdrop.bukkit.mythical.QuestChest;
 import net.mcdrop.common.base.chest.ChestListFiller;
 import net.mcdrop.sxAirDrops;
@@ -21,10 +23,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -64,20 +63,16 @@ public class Tasks {
     }
 
     public void startTime2Mode() {
+        TimeProvider timeProvider = new MoscowTimeService(); // Используем API времени
+        Random random = new Random();
+
         new BukkitRunnable() {
             @Override
             public void run() {
-                DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+                LocalTime now = timeProvider.getCurrentTime();
 
-                TimeZone moscowTimeZone = TimeZone.getTimeZone("Europe/Moscow");
-                SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
-                dateFormat.setTimeZone(moscowTimeZone);
-
-                String nowString = dateFormat.format(new Date());
-                LocalTime now = LocalTime.parse(nowString, timeFormatter);
-
-                LocalTime timeOneM = LocalTime.parse(timeOne, timeFormatter);
-                LocalTime timeTwoM = LocalTime.parse(timeTwo, timeFormatter);
+                LocalTime timeOneM = timeProvider.parseTime(timeOne);
+                LocalTime timeTwoM = timeProvider.parseTime(timeTwo);
 
                 Optional<DropItemRarity> optionalRarity = DropItemsFiller.getAllRarities().values().stream()
                         .skip(random.nextInt(DropItemsFiller.getAllRarities().size()))
@@ -92,8 +87,7 @@ public class Tasks {
                 List<ItemStack> itemStackList = rarity.getItems().stream()
                         .filter(item -> random.nextDouble() * 100 < rarity.getChance())
                         .map(ChestItem::getItemStack)
-                        .filter(stack -> stack != null
-                                && stack.getType() != Material.AIR)
+                        .filter(stack -> stack != null && stack.getType() != Material.AIR)
                         .collect(Collectors.toList());
 
                 if (itemStackList.isEmpty()) {
@@ -101,8 +95,7 @@ public class Tasks {
                     return;
                 }
 
-                if ((now.equals(timeOneM)
-                        || now.equals(timeTwoM))) {
+                if (now.equals(timeOneM) || now.equals(timeTwoM)) {
                     int minX = sxAirDrops.getInstance().getConfig().getInt("event.tools.serializate.x-direct-min");
                     int maxX = sxAirDrops.getInstance().getConfig().getInt("event.tools.serializate.x-direct-max");
                     int minZ = sxAirDrops.getInstance().getConfig().getInt("event.tools.serializate.z-direct-min");
@@ -118,7 +111,6 @@ public class Tasks {
                         Bukkit.getLogger().warning("Мир не найден! Проверьте конфигурацию.");
                         return;
                     }
-
 
                     LocationStrategy locationStrategy = new ChestLocationStrategy();
                     locationStrategy.findLocationAsync(world, minX, maxX, minZ, maxZ,

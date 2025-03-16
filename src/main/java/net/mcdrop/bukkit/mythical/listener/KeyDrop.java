@@ -1,5 +1,6 @@
 package net.mcdrop.bukkit.mythical.listener;
 
+import net.lielibrary.bukkit.requirements.RequirementAPI;
 import net.mcdrop.common.base.chest.fake.ChestFake;
 import net.mcdrop.common.base.key.KeyChestFiller;
 import net.mcdrop.sxAirDrops;
@@ -32,6 +33,7 @@ public class KeyDrop implements Listener {
                 .ifPresent(key -> {
                     if (RANDOM.nextDouble() < key.getDropChance()) {
                         killer.getInventory().addItem(new ItemStack(key.getItem()));
+                        RequirementAPI.executeFromConfig(killer, "event.rewards.kill_boss");
                         Bukkit.broadcastMessage("§a" + killer.getName() + " выбил ключ: §e" + key.getName() + "!");
 
                         droppedKeyIds.add(key.getId());

@@ -1,5 +1,6 @@
 package net.mcdrop;
 
+import net.lielibrary.bukkit.requirements.RequirementAPI;
 import net.mcdrop.bukkit.Tasks;
 import net.mcdrop.bukkit.chest.listeners.joiner.JoinerListener;
 import net.mcdrop.bukkit.chest.listeners.opened.OpenedListener;
@@ -33,6 +34,9 @@ public final class sxAirDrops extends JavaPlugin {
     public void onEnable() {
         instance = this;
         saveDefaultConfig();
+        DropItemsFiller.load();
+        KeyChestFiller.load();
+
 
 
         schematicsManager = new SchematicsDirectoryManager(getDataFolder(), "schematics");
@@ -43,8 +47,7 @@ public final class sxAirDrops extends JavaPlugin {
         Utility.checkPlugin("WorldEdit");
         Utility.checkPlugin("DecentHolograms");
 
-        DropItemsFiller.load();
-        KeyChestFiller.load();
+        RequirementAPI.loadConfig(getConfig());
 
         BaseCommand.register(this, new AdminCommands("airdrop"));
 
@@ -60,10 +63,10 @@ public final class sxAirDrops extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        saveConfig();
         DropItemsFiller.save();
         ChestListFiller.save();
         KeyChestFiller.save();
+        saveConfig();
     }
 
     @NotNull

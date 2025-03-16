@@ -1,7 +1,5 @@
 package net.mcdrop.bukkit.commands;
 
-import net.mcdrop.common.base.chest.ChestListFiller;
-import net.mcdrop.common.base.chest.fake.ChestFake;
 import net.mcdrop.common.base.key.KeyChestFiller;
 import net.mcdrop.common.base.key.item.KeyItem;
 import net.mcdrop.sxAirDrops;
@@ -18,33 +16,33 @@ public class AdminCommands extends BaseCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player player)) {
+        if (sender.isOp()) {
+            if (!(sender instanceof Player player)) {
 
-            sender.sendMessage(sxAirDrops.getInstance().getConfig().getString("messages.commands.command_error"));
-            return;
-        }
+                sender.sendMessage(sxAirDrops.getInstance().getConfig().getString("messages.commands.command_error"));
+                return;
+            }
 
-        if (args.length == 0) {
+            if (args.length == 0) {
 
-            sxAirDrops.getInstance().getConfig().getStringList("messages.commands.user-help")
-                    .forEach(s -> player.sendMessage(Plugin.getWithColor().hexToMinecraftColor(s)));
-            return;
-        }
+                sxAirDrops.getInstance().getConfig().getStringList("messages.commands.user-help")
+                        .forEach(s -> player.sendMessage(Plugin.getWithColor().hexToMinecraftColor(s)));
+                return;
+            }
 
-        if (args[0].equalsIgnoreCase("loot")) {
-            new LootMenu().lootCreateMenu(player);
+            if (args[0].equalsIgnoreCase("loot")) {
+                new LootMenu().lootCreateMenu(player);
 
-            player.sendMessage(Plugin.getWithColor().hexToMinecraftColor(
-                    sxAirDrops.getInstance().getConfig().getString("messages.commands.loot_menu_opened")
-            ));
-        } else if (args[0].equalsIgnoreCase("admin")) {
-            for(KeyItem keysMythical : KeyChestFiller.getAllKeys().values())
-                player.getInventory().addItem(keysMythical.getItem());
-        }
-        else {
-            sxAirDrops.getInstance().getConfig().getStringList("messages.commands.user-help")
-                    .forEach(s -> player.sendMessage(Plugin.getWithColor().hexToMinecraftColor(s)));
+                player.sendMessage(Plugin.getWithColor().hexToMinecraftColor(
+                        sxAirDrops.getInstance().getConfig().getString("messages.commands.loot_menu_opened")
+                ));
+            } else if (args[0].equalsIgnoreCase("admin")) {
+                for (KeyItem keysMythical : KeyChestFiller.getAllKeys().values())
+                    player.getInventory().addItem(keysMythical.getItem());
+            } else {
+                sxAirDrops.getInstance().getConfig().getStringList("messages.commands.user-help")
+                        .forEach(s -> player.sendMessage(Plugin.getWithColor().hexToMinecraftColor(s)));
+            }
         }
     }
-
 }

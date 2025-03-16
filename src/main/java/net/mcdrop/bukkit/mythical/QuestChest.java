@@ -117,66 +117,74 @@ public class QuestChest implements ChestFake {
     }
 
     private void spawnDrop() {
-        AtomicInteger time = new AtomicInteger(5);
+        new BukkitRunnable() {
+            private int time = 5;
 
-        Bukkit.getScheduler().runTaskTimer(sxAirDrops.getInstance(),() -> {
-            time.getAndDecrement();
-                Optional<DropItemRarity> optionalRarity = DropItemsFiller.getAllRarities().values().stream()
-                        .skip((int) (Math.random() * DropItemsFiller.getAllRarities().size()))
-                        .findFirst();
-
-                if (optionalRarity.isPresent()) {
-                    DropItemRarity rarity = optionalRarity.get();
-
-                    List<ItemStack> itemStackList = rarity.getItems().stream()
-                            .filter(item -> Math.random() * 100 < rarity.getChance())
-                            .map(ChestItem::getItemStack)
-                            .filter(stack -> {
-                                if (stack == null || stack.getType() == Material.AIR) {
-                                    Bukkit.getLogger().warning(sxAirDrops.getInstance().getConfig().getString("messages.incorrect_stack")
-                                            .replace("{stack}", String.valueOf(stack)));
-                                    return false;
-                                }
-                                return true;
-                            })
-                            .collect(Collectors.toList());
-
-                    if (time.get() == 0) {
-                        int minX = sxAirDrops.getInstance().getConfig().getInt("event.tools.serializate.x-direct-min");
-                        int maxX = sxAirDrops.getInstance().getConfig().getInt("event.tools.serializate.x-direct-max");
-                        int minZ = sxAirDrops.getInstance().getConfig().getInt("event.tools.serializate.z-direct-min");
-                        int maxZ = sxAirDrops.getInstance().getConfig().getInt("event.tools.serializate.z-direct-max");
-
-                        Dimensions dimensions = new DimensionUtility().getSchematicDimensions(
-                                new File(sxAirDrops.getSchematicsDirectory(),
-                                        sxAirDrops.getInstance().getConfig().getString("event.tools.schematic.file")));
-
-                        LocationStrategy locationStrategy = new ChestLocationStrategy();
-
-                        locationStrategy.findLocationAsync(Bukkit.getWorld("world"), minX, maxX, minZ, maxZ,
-                                sxAirDrops.getInstance().getConfig().getInt("event.tools.attempts"),
-                                dimensions.getWidth(), dimensions.getLength(), new LocationCallBack() {
-
-                                    @Override
-                                    public void onLocationFound(Location location) {
-                                        if (location != null) {
-                                            Bukkit.getScheduler().cancelTasks(sxAirDrops.getInstance());
-
-                                            new Creating(itemStackList, "airDrop", Material.CHEST, location,
-                                                    sxAirDrops.getInstance().getConfig().getInt("event.task.settings.time_to_open"),
-                                                    sxAirDrops.getInstance().getConfig().getInt("event.task.settings.time_to_destroy"), rarity.getDisplay());
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onFailure(String error) {
-                                        Bukkit.getLogger().warning(sxAirDrops.getInstance().getConfig().getString("messages.location_failure")
-                                                .replace("{error}", String.valueOf(error)));
-                                    }
-                                });
-                    }
+            @Override
+            public void run() {
+                if (time-- <= 0) {
+                    cancel();
+                    spawnAirdrop();
                 }
-        },20L,20L);
+            }
+        }.runTaskTimer(sxAirDrops.getInstance(), 20L, 20L);
+    }
+
+    private void spawnAirdrop() {
+        DropItemRarity rarity = getRandomRarity();
+        if (rarity == null) return;
+
+        List<ItemStack> itemStackList = rarity.getItems().stream()
+                .filter(item -> Math.random() * 100 < rarity.getChance())
+                .map(ChestItem::getItemStack)
+                .filter(this::isValidStack)
+                .collect(Collectors.toList());
+
+        if (itemStackList.isEmpty()) return;
+
+        int minX = sxAirDrops.getInstance().getConfig().getInt("event.tools.serializate.x-direct-min");
+        int maxX = sxAirDrops.getInstance().getConfig().getInt("event.tools.serializate.x-direct-max");
+        int minZ = sxAirDrops.getInstance().getConfig().getInt("event.tools.serializate.z-direct-min");
+        int maxZ = sxAirDrops.getInstance().getConfig().getInt("event.tools.serializate.z-direct-max");
+
+        File schematicFile = new File(sxAirDrops.getSchematicsDirectory(),
+                sxAirDrops.getInstance().getConfig().getString("event.tools.schematic.file"));
+        Dimensions dimensions = new DimensionUtility().getSchematicDimensions(schematicFile);
+
+        LocationStrategy locationStrategy = new ChestLocationStrategy();
+        locationStrategy.findLocationAsync(Bukkit.getWorld("world"), minX, maxX, minZ, maxZ,
+                sxAirDrops.getInstance().getConfig().getInt("event.tools.attempts"), dimensions.getWidth(), dimensions.getLength(),
+                new LocationCallBack() {
+                    @Override
+                    public void onLocationFound(Location location) {
+                        if (location == null) return;
+
+                        new Creating(itemStackList, "airDrop", Material.CHEST, location,
+                                sxAirDrops.getInstance().getConfig().getInt("event.task.settings.time_to_open"),
+                                sxAirDrops.getInstance().getConfig().getInt("event.task.settings.time_to_destroy"),
+                                rarity.getDisplay());
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        Bukkit.getLogger().warning(sxAirDrops.getInstance().getConfig().getString("messages.location_failure")
+                                .replace("{error}", error));
+                    }
+                });
+    }
+
+    private DropItemRarity getRandomRarity() {
+        List<DropItemRarity> rarities = new ArrayList<>(DropItemsFiller.getAllRarities().values());
+        return rarities.isEmpty() ? null : rarities.get((int) (Math.random() * rarities.size()));
+    }
+
+    private boolean isValidStack(ItemStack stack) {
+        if (stack == null || stack.getType() == Material.AIR) {
+            Bukkit.getLogger().warning(sxAirDrops.getInstance().getConfig().getString("messages.incorrect_stack")
+                    .replace("{stack}", "null or AIR"));
+            return false;
+        }
+        return true;
     }
 
     private void resetChests() {
